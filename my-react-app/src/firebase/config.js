@@ -1,17 +1,38 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
-// Your web app's Firebase configuration using environment variables
+// Hard-coded Firebase configuration for production
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyDrV8cXb-jM6WAigwUjoEXc2eH8kK19jaE",
+  authDomain: "testchek-34555.firebaseapp.com",
+  projectId: "testchek-34555",
+  storageBucket: "testchek-34555.firebasestorage.app",
+  messagingSenderId: "1032059400263",
+  appId: "1:1032059400263:web:5b22891d086c3445104162",
+  measurementId: "G-XEFM2C3S1D"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Initialize Firebase with error handling
+let app;
+let auth;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  // Create a mock auth object as fallback
+  auth = {
+    currentUser: null,
+    onAuthStateChanged: (callback) => {
+      callback(null);
+      return () => {};
+    },
+    signInWithEmailAndPassword: () => Promise.reject(new Error('Firebase not initialized')),
+    signInWithPopup: () => Promise.reject(new Error('Firebase not initialized')),
+    signOut: () => Promise.resolve()
+  };
+}
+
+export { auth };
