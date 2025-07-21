@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 function LoginForm({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -16,22 +17,22 @@ function LoginForm({ onLoginSuccess }) {
     setLoading(true);
 
     try {
-      // For demo purposes, simulate a successful login with JWT
-      // In a real app, this would be an actual API call
-      const mockResponse = {
-        accessToken: createMockJwt({ uid: 'user-123', email }),
-        refreshToken: createMockJwt({ uid: 'user-123' }, '7d')
-      };
+      // Authenticate with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
       
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', mockResponse.accessToken);
-      localStorage.setItem('refreshToken', mockResponse.refreshToken);
+      // Get the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
       
-      // Create a user object from the token data
+      // Store token in localStorage
+      localStorage.setItem('accessToken', idToken);
+      
+      // Create a user object
       const user = { 
-        uid: 'user-123', 
-        email: email,
-        displayName: email.split('@')[0]
+        uid: firebaseUser.uid, 
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName || email.split('@')[0],
+        photoURL: firebaseUser.photoURL
       };
       
       // Notify parent component of successful login
@@ -46,71 +47,40 @@ function LoginForm({ onLoginSuccess }) {
     }
   };
 
-  // Create a mock JWT token
-  const createMockJwt = (payload, expiry = '15m') => {
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const now = Math.floor(Date.now() / 1000);
-    
-    // Set expiration based on parameter
-    let exp = now + 15 * 60; // 15 minutes default
-    if (expiry === '7d') {
-      exp = now + 7 * 24 * 60 * 60; // 7 days
-    }
-    
-    const tokenPayload = {
-      ...payload,
-      iat: now,
-      exp: exp
-    };
-    
-    // In a real app, this would be signed properly
-    // This is just for demo purposes
-    const base64Header = btoa(JSON.stringify(header));
-    const base64Payload = btoa(JSON.stringify(tokenPayload));
-    const signature = 'MOCK_SIGNATURE';
-    
-    return `${base64Header}.${base64Payload}.${signature}`;
-  };
-
-  // Handle Google login (simplified)
+  // Handle Google login
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
 
     try {
-      // Simulate Google login with JWT
-      setTimeout(() => {
-        const mockUser = {
-          uid: 'google-user-123',
-          email: 'google-user@example.com',
-          displayName: 'Google User',
-          photoURL: 'https://via.placeholder.com/150'
-        };
-        
-        const mockResponse = {
-          accessToken: createMockJwt({ 
-            uid: mockUser.uid, 
-            email: mockUser.email,
-            displayName: mockUser.displayName,
-            photoURL: mockUser.photoURL
-          }),
-          refreshToken: createMockJwt({ uid: mockUser.uid }, '7d')
-        };
-        
-        // Store tokens
-        localStorage.setItem('accessToken', mockResponse.accessToken);
-        localStorage.setItem('refreshToken', mockResponse.refreshToken);
-        
-        // Notify parent
-        if (onLoginSuccess) {
-          onLoginSuccess(mockUser);
-        }
-        
-        setLoading(false);
-      }, 1000);
+      // Create Google auth provider
+      const provider = new GoogleAuthProvider();
+      
+      // Sign in with popup
+      const userCredential = await signInWithPopup(auth, provider);
+      const firebaseUser = userCredential.user;
+      
+      // Get the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+      
+      // Store token in localStorage
+      localStorage.setItem('accessToken', idToken);
+      
+      // Create a user object
+      const user = { 
+        uid: firebaseUser.uid, 
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL
+      };
+      
+      // Notify parent component of successful login
+      if (onLoginSuccess) {
+        onLoginSuccess(user);
+      }
     } catch (error) {
       console.error('Google login error:', error);
-      setError('Google login failed. Please try again.');
+      setError(error.message || 'Google login failed. Please try again.');
       setLoading(false);
     }
   };
