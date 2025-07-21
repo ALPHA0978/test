@@ -99,7 +99,7 @@ function LoginForm({ onLoginSuccess }) {
         {/* Left section: Welcome message and abstract shapes */}
         <div className="relative bg-gradient-to-br from-blue-700 to-indigo-700 p-6 md:p-8 lg:p-10 flex flex-col justify-center items-center text-white text-center md:rounded-l-3xl">
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-wide drop-shadow-md">WELCOME</h2>
-          <h3 className="text-xl md:text-2xl font-bold mb-5 drop-shadow-sm">JWT Authentication</h3>
+          <h3 className="text-xl md:text-2xl font-bold mb-5 drop-shadow-sm">Ashutosh</h3>
           <p className="text-xs md:text-sm opacity-90 leading-relaxed max-w-xs sm:max-w-sm">
             Self-implemented JWT with 15-minute expiry and secure refresh token endpoint for Firebase authentication.
           </p>
